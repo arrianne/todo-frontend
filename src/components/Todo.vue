@@ -58,6 +58,10 @@
   </div>
 </template>
 <script>
+
+// this is so that it loads data from my spring boot backend server
+import api from '../Api';
+
   // visibility filters
   let filters = {
     all: function (todos) {
@@ -91,14 +95,35 @@
         error: null,
       }
     },
+
+    // This uses the API module which is imported above to load the todos from the Spring REST service
+    // (instead of simply using an array in the app process).
+    
     mounted() {
-      // inject some startup data
-      this.todos = [{title: 'Drink coffee', completed:false},{title: 'Write REST API', completed:false}];
-      // hide the loading message
-      this.loading = false;
+      api.getAll()
+        .then(response => {
+          this.$log.debug("Data loaded: ", response.data)
+          this.todos = response.data
+      })
+        .catch(error => {
+          this.$log.debug(error)
+          this.error = "Failed to load todos"
+      })
+        .finally(() => this.loading = false)
     },
+
+    // mounted method before I attached to boot server
+
+    // mounted() {
+    //   // inject some startup data
+    //   this.todos = [{title: 'Drink coffee', completed:false},{title: 'Write REST API', completed:false}];
+    //   // hide the loading message
+    //   this.loading = false;
+    // },
     // computed properties
     // http://vuejs.org/guide/computed.html
+
+
     computed: {
       filteredTodos: function () {
         return filters[this.visibility](this.todos)
